@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📔 나의 다이어리</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            min-height: 100vh;
+            padding: 16px;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ffecd2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .diary {
+            position: relative;
+            background: linear-gradient(180deg, #fff9f0 0%, #fff5eb 100%);
+            border: 3px solid #f8e1d4;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            min-height: 700px;
+            padding: 24px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .header-inner {
+            display: inline-block;
+            padding: 16px 24px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffd1dc 0%, #ffb6c1 100%);
+            box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #be185d;
+        }
+        
+        .header .date {
+            margin-top: 4px;
+            font-size: 14px;
+            color: #db2777;
+        }
+        
+        .sync-status {
+            text-align: center;
+            margin-bottom: 16px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: none;
+        }
+        
+        .sync-status.show {
+            display: block;
+        }
+        
+        .sync-status.success {
+            background: rgba(52, 211, 153, 0.2);
+            color: #059669;
+        }
+        
+        .sync-status.loading {
+            background: rgba(251, 191, 36, 0.2);
+            color: #d97706;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 2px solid #fbcfe8;
+            background: rgba(255,255,255,0.8);
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .input-area input:focus {
+            border-color: #f472b6;
+        }
+        
+        .input-area button {
+            padding: 12px 20px;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .input-area button:hover {
+            transform: scale(1.05);
+        }
+        
+        .todo-list {
+            margin-bottom: 24px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: #f472b6;
+        }
+        
+        .empty-state .icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+        
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .todo-item:hover {
+            transform: scale(1.02);
+        }
+        
+        .todo-item.fade-out {
+            opacity: 0;
+            transform: scale(0.8) translateX(100px);
+        }
+        
+        .todo-item .checkbox {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #f472b6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .todo-item .checkbox span {
+            color: #f472b6;
+            font-size: 12px;
+        }
+        
+        .todo-item .text {
+            flex: 1;
+            color: #374151;
+        }
+        
+        .todo-item .hint {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        
+        .completed-section {
+            margin-bottom: 24px;
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(144, 238, 144, 0.2);
+        }
+        
+        .completed-section .title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .completed-section .title span {
+            color: #16a34a;
+            font-weight: 500;
+        }
+        
+        .completed-section .title button {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .completed-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        .completed-item .text {
+            text-decoration: line-through;
+        }
+        
+        .sticker-section {
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            background: rgba(255,255,255,0.6);
+        }
+        
+        .sticker-section .title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .sticker-section .title span {
+            color: #db2777;
+            font-weight: 500;
+        }
+        
+        .sticker-section .title button {
+            background: none;
+            border: none;
+            color: #f472b6;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .sticker-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .sticker {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.8);
+            cursor: grab;
+            font-size: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .sticker:hover {
+            transform: scale(1.2);
+        }
+        
+        .sticker-hint {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #f472b6;
+            text-align: center;
+        }
+        
+        .placed-sticker {
+            position: absolute;
+            font-size: 28px;
+            cursor: pointer;
+            user-select: none;
+            z-index: 10;
+            transition: transform 0.2s;
+        }
+        
+        .placed-sticker:hover {
+            transform: scale(1.3);
+        }
+        
+        .google-section {
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.6);
+        }
+        
+        .google-section .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .google-section .header-row .left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .google-section .header-row .left span:first-child {
+            font-size: 20px;
+        }
+        
+        .google-section .header-row .left span:last-child {
+            color: #db2777;
+            font-weight: 500;
+        }
+        
+        .google-section .buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-history {
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: none;
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .btn-connect {
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .btn-connect.connected {
+            background: rgba(52, 211, 153, 0.2);
+            color: #059669;
+        }
+        
+        .btn-connect.disconnected {
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+            color: white;
+        }
+        
+        .google-section .hint {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #6b7280;
+            text-align: center;
+        }
+        
+        .decor1 {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            font-size: 60px;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+        
+        .decor2 {
+            position: absolute;
+            top: 80px;
+            left: 16px;
+            font-size: 32px;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: auto;
+        }
+        
+        .modal h3 {
+            margin: 0 0 16px;
+            color: #be185d;
+        }
+        
+        .modal .info-box {
+            background: #fef3c7;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+        
+        .modal .info-box p {
+            margin: 0 0 8px;
+            font-weight: bold;
+        }
+        
+        .modal .info-box ol {
+            margin: 0;
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+        
+        .modal input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 2px solid #fbcfe8;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .modal .btn-row {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .modal .btn-row button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .modal .btn-save {
+            border: none;
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: white;
+        }
+        
+        .modal .btn-cancel {
+            border: 2px solid #e5e7eb;
+            background: white;
+        }
+        
+        .modal .btn-disconnect {
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            border: 2px solid #fca5a5;
+            background: #fff5f5;
+            color: #dc2626;
+            cursor: pointer;
+        }
+        
+        .modal .btn-close {
+            width: 100%;
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .history-summary {
+            background: #f0fdf4;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        .history-summary .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #16a34a;
+        }
+        
+        .history-summary .label {
+            margin-top: 4px;
+            color: #6b7280;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .history-item .date {
+            color: #6b7280;
+        }
+        
+        .history-item .count {
+            font-weight: bold;
+            color: #be185d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="diary" id="diary">
+            <!-- 배치된 스티커들 -->
+            <div id="placedStickers"></div>
+            
+            <!-- 헤더 -->
+            <div class="header">
+                <div class="header-inner">
+                    <h1>📔 나의 다이어리</h1>
+                    <p class="date" id="todayDate"></p>
+                </div>
+            </div>
+            
+            <!-- 동기화 상태 -->
+            <div class="sync-status" id="syncStatus"></div>
+            
+            <!-- 입력 영역 -->
+            <div class="input-area">
+                <input type="text" id="todoInput" placeholder="오늘 할 일을 적어보세요 ✏️">
+                <button onclick="addTodo()">추가 💕</button>
+            </div>
+            
+            <!-- 할 일 목록 -->
+            <div class="todo-list" id="todoList"></div>
+            
+            <!-- 완료 목록 -->
+            <div class="completed-section" id="completedSection" style="display: none;">
+                <div class="title">
+                    <span>✨ 오늘 완료한 일 (<span id="completedCount">0</span>개)</span>
+                    <button onclick="clearCompleted()">기록 지우기</button>
+                </div>
+                <div id="completedList"></div>
+            </div>
+            
+            <!-- 스티커 섹션 -->
+            <div class="sticker-section">
+                <div class="title">
+                    <span>🎨 스티커 꾸미기</span>
+                    <button onclick="clearStickers()">전체 삭제</button>
+                </div>
+                <div class="sticker-grid" id="stickerGrid"></div>
+                <p class="sticker-hint">💡 드래그해서 꾸며보세요! (클릭하면 삭제)</p>
+            </div>
+            
+            <!-- 구글 연동 -->
+            <div class="google-section">
+                <div class="header-row">
+                    <div class="left">
+                        <span>📊</span>
+                        <span>구글 시트 연동</span>
+                    </div>
+                    <div class="buttons">
+                        <button class="btn-history" id="btnHistory" style="display: none;" onclick="showHistory()">📈 기록보기</button>
+                        <button class="btn-connect disconnected" id="btnConnect" onclick="showSettings()">연결하기</button>
+                    </div>
+                </div>
+                <p class="hint" id="googleHint" style="display: none;">완료한 할 일이 자동으로 구글 시트에 기록됩니다 📝</p>
+            </div>
+            
+            <!-- 배경 장식 -->
+            <div class="decor1">🌸</div>
+            <div class="decor2">✨</div>
+        </div>
+    </div>
+    
+    <!-- 설정 모달 -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <h3>⚙️ 구글 시트 연동 설정</h3>
+            <div class="info-box">
+                <p>📋 설정 방법:</p>
+                <ol>
+                    <li>구글 스프레드시트 생성</li>
+                    <li>확장프로그램 → Apps Script</li>
+                    <li>코드 붙여넣기 후 저장</li>
+                    <li>배포 → 새 배포 → 웹 앱</li>
+                    <li>URL 복사해서 아래에 붙여넣기</li>
+                </ol>
+            </div>
+            <input type="text" id="scriptUrlInput" placeholder="Apps Script 웹 앱 URL 붙여넣기">
+            <div class="btn-row">
+                <button class="btn-save" onclick="saveScriptUrl()">연결하기</button>
+                <button class="btn-cancel" onclick="hideSettings()">취소</button>
+            </div>
+            <button class="btn-disconnect" id="btnDisconnect" style="display: none;" onclick="disconnectGoogle()">연결 해제</button>
+        </div>
+    </div>
+    
+    <!-- 기록 모달 -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal">
+            <h3>📊 최근 7일 기록</h3>
+            <div class="history-summary">
+                <div class="number" id="historyTotal">0</div>
+                <div class="label">완료한 할 일</div>
+            </div>
+            <div id="historyList"></div>
+            <button class="btn-close" onclick="hideHistory()">닫기</button>
+        </div>
+    </div>
+
+    <script>
+        // 데이터
+        let todos = [];
+        let completedToday = [];
+        let placedStickers = [];
+        let scriptUrl = '';
+        let isConnected = false;
+        
+        const STICKERS = ['⭐', '🌸', '🦋', '🌈', '💖', '🍀', '🎀', '🌙', '☀️', '🍓', '🐰', '🌷', '✨', '🎵', '📚', '☕'];
+        const COLORS = ['#FFE4E1', '#E6E6FA', '#F0FFF0', '#FFF0F5', '#F5F5DC', '#E0FFFF', '#FFEFD5', '#FFE4B5', '#DDA0DD', '#98D8C8'];
+        
+        // 초기화
+        function init() {
+            // 날짜 표시
+            const today = new Date();
+            document.getElementById('todayDate').textContent = today.toLocaleDateString('ko-KR', {
+                year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+            });
+            
+            // 로컬 스토리지에서 데이터 로드
+            loadData();
+            
+            // 스티커 그리드 생성
+            renderStickerGrid();
+            
+            // 드래그 앤 드롭 설정
+            setupDragDrop();
+            
+            // 엔터 키 이벤트
+            document.getElementById('todoInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addTodo();
+            });
+        }
+        
+        function loadData() {
+            const savedTodos = localStorage.getItem('diary-todos');
+            const savedCompleted = localStorage.getItem('diary-completed-' + new Date().toDateString());
+            const savedStickers = localStorage.getItem('diary-stickers');
+            const savedUrl = localStorage.getItem('google-script-url');
+            
+            if (savedTodos) todos = JSON.parse(savedTodos);
+            if (savedCompleted) completedToday = JSON.parse(savedCompleted);
+            if (savedStickers) placedStickers = JSON.parse(savedStickers);
+            if (savedUrl) {
+                scriptUrl = savedUrl;
+                isConnected = true;
+                updateConnectionUI();
+            }
+            
+            renderTodos();
+            renderCompleted();
+            renderPlacedStickers();
+        }
+        
+        function saveData() {
+            localStorage.setItem('diary-todos', JSON.stringify(todos));
+            localStorage.setItem('diary-completed-' + new Date().toDateString(), JSON.stringify(completedToday));
+            localStorage.setItem('diary-stickers', JSON.stringify(placedStickers));
+        }
+        
+        function renderStickerGrid() {
+            const grid = document.getElementById('stickerGrid');
+            grid.innerHTML = STICKERS.map((emoji, i) => 
+                `<div class="sticker" draggable="true" data-emoji="${emoji}">${emoji}</div>`
+            ).join('');
+        }
+        
+        function setupDragDrop() {
+            const diary = document.getElementById('diary');
+            let draggedEmoji = '';
+            
+            document.querySelectorAll('.sticker').forEach(sticker => {
+                sticker.addEventListener('dragstart', (e) => {
+                    draggedEmoji = e.target.dataset.emoji;
+                });
+            });
+            
+            diary.addEventListener('dragover', (e) => e.preventDefault());
+            
+            diary.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (!draggedEmoji) return;
+                
+                const rect = diary.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                
+                placedStickers.push({
+                    id: Date.now(),
+                    emoji: draggedEmoji,
+                    x, y,
+                    rotation: Math.random() * 30 - 15
+                });
+                
+                draggedEmoji = '';
+                saveData();
+                renderPlacedStickers();
+            });
+        }
+        
+        function renderPlacedStickers() {
+            const container = document.getElementById('placedStickers');
+            container.innerHTML = placedStickers.map(s => 
+                `<div class="placed-sticker" style="left:${s.x}%;top:${s.y}%;transform:translate(-50%,-50%) rotate(${s.rotation}deg)" onclick="removeSticker(${s.id})">${s.emoji}</div>`
+            ).join('');
+        }
+        
+        function removeSticker(id) {
+            placedStickers = placedStickers.filter(s => s.id !== id);
+            saveData();
+            renderPlacedStickers();
+        }
+        
+        function clearStickers() {
+            placedStickers = [];
+            saveData();
+            renderPlacedStickers();
+        }
+        
+        function addTodo() {
+            const input = document.getElementById('todoInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            todos.push({
+                id: Date.now(),
+                text,
+                color: COLORS[Math.floor(Math.random() * COLORS.length)],
+                createdAt: new Date().toISOString()
+            });
+            
+            input.value = '';
+            saveData();
+            renderTodos();
+        }
+        
+        function renderTodos() {
+            const list = document.getElementById('todoList');
+            
+            if (todos.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📝</div>
+                        <p>오늘의 할 일을 추가해보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = todos.map(todo => `
+                <div class="todo-item" style="background:${todo.color}" onclick="completeTodo(${todo.id})" id="todo-${todo.id}">
+                    <div class="checkbox"><span>✓</span></div>
+                    <span class="text">${todo.text}</span>
+                    <span class="hint">클릭 → 완료</span>
+                </div>
+            `).join('');
+        }
+        
+        async function completeTodo(id) {
+            const todo = todos.find(t => t.id === id);
+            if (!todo) return;
+            
+            // 애니메이션
+            const el = document.getElementById('todo-' + id);
+            el.classList.add('fade-out');
+            
+            // 구글 시트에 저장
+            if (isConnected) {
+                await syncToGoogleSheet(todo);
+            }
+            
+            setTimeout(() => {
+                completedToday.push({
+                    ...todo,
+                    completedAt: new Date().toISOString()
+                });
+                todos = todos.filter(t => t.id !== id);
+                saveData();
+                renderTodos();
+                renderCompleted();
+            }, 500);
+        }
+        
+        function renderCompleted() {
+            const section = document.getElementById('completedSection');
+            const list = document.getElementById('completedList');
+            const count = document.getElementById('completedCount');
+            
+            if (completedToday.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            
+            section.style.display = 'block';
+            count.textContent = completedToday.length;
+            list.innerHTML = completedToday.map(item => `
+                <div class="completed-item">
+                    <span>✓</span>
+                    <span class="text">${item.text}</span>
+                </div>
+            `).join('');
+        }
+        
+        function clearCompleted() {
+            completedToday = [];
+            saveData();
+            renderCompleted();
+        }
+        
+        // 구글 시트 연동
+        function showSettings() {
+            document.getElementById('settingsModal').classList.add('show');
+            document.getElementById('scriptUrlInput').value = scriptUrl;
+            document.getElementById('btnDisconnect').style.display = isConnected ? 'block' : 'none';
+        }
+        
+        function hideSettings() {
+            document.getElementById('settingsModal').classList.remove('show');
+        }
+        
+        function saveScriptUrl() {
+            const url = document.getElementById('scriptUrlInput').value.trim();
+            if (!url) return;
+            
+            scriptUrl = url;
+            isConnected = true;
+            localStorage.setItem('google-script-url', url);
+            
+            updateConnectionUI();
+            hideSettings();
+            showSyncStatus('✓ 구글 드라이브 연결됨!', 'success');
+        }
+        
+        function disconnectGoogle() {
+            scriptUrl = '';
+            isConnected = false;
+            localStorage.removeItem('google-script-url');
+            updateConnectionUI();
+            hideSettings();
+        }
+        
+        function updateConnectionUI() {
+            const btn = document.getElementById('btnConnect');
+            const btnHistory = document.getElementById('btnHistory');
+            const hint = document.getElementById('googleHint');
+            
+            if (isConnected) {
+                btn.textContent = '✓ 연결됨';
+                btn.className = 'btn-connect connected';
+                btnHistory.style.display = 'inline-block';
+                hint.style.display = 'block';
+            } else {
+                btn.textContent = '연결하기';
+                btn.className = 'btn-connect disconnected';
+                btnHistory.style.display = 'none';
+                hint.style.display = 'none';
+            }
+        }
+        
+        async function syncToGoogleSheet(todo) {
+            if (!scriptUrl) return;
+            
+            showSyncStatus('동기화 중...', 'loading');
+            
+            try {
+                await fetch(scriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: todo.text,
+                        createdAt: todo.createdAt
+                    }),
+                    mode: 'no-cors'
+                });
+                
+                showSyncStatus('✓ 구글 시트 저장 완료!', 'success');
+            } catch (e) {
+                showSyncStatus('⚠️ 동기화 실패', 'loading');
+            }
+        }
+        
+        function showSyncStatus(message, type) {
+            const el = document.getElementById('syncStatus');
+            el.textContent = message;
+            el.className = 'sync-status show ' + type;
+            setTimeout(() => el.classList.remove('show'), 2000);
+        }
+        
+        async function showHistory() {
+            if (!scriptUrl) return;
+            
+            try {
+                const response = await fetch(scriptUrl + '?action=getHistory&days=7');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('historyTotal').textContent = data.totalCompleted || 0;
+                    
+                    const list = document.getElementById('historyList');
+                    const summary = data.summary || {};
+                    list.innerHTML = Object.entries(summary).map(([date, count]) => `
+                        <div class="history-item">
+                            <span class="date">${date}</span>
+                            <span class="count">${count}개</span>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('historyModal').classList.add('show');
+                }
+            } catch (e) {
+                alert('기록을 불러올 수 없습니다.');
+            }
+        }
+        
+        function hideHistory() {
+            document.getElementById('historyModal').classList.remove('show');
+        }
+        
+        // 시작
+        init();
+    </script>
+</body>
+</html>
